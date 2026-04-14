@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xpense | Smart Wealth Tracker</title>
+    <meta name="description" content="A premium, glassmorphism-inspired expense tracker for smart wealth management.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <div class="brand">
+                <h1>Xpense</h1>
+                <p>Master your finances with elegance.</p>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="action-btn" title="Toggle Theme">
+                    <i data-lucide="moon"></i>
+                </button>
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-label">Today</div>
+                        <div class="stat-value" id="today-amount">₹0.00</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">This Month</div>
+                        <div class="stat-value" id="monthly-amount">₹0.00</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Total Balance</div>
+                        <div class="stat-value" id="total-amount">₹0.00</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <aside>
+            <section class="glass insights-card">
+                <div class="form-title">
+                    <i data-lucide="sparkles"></i>
+                    <span>Smart Insights</span>
+                </div>
+                <div id="insight-content" class="insight-content">
+                    <p class="insight-loading">Analyzing your habits...</p>
+                </div>
+            </section>
+
+            <section class="glass">
+                <div class="form-title">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Add Transaction</span>
+                </div>
+                <form id="expense-form">
+                    <div class="input-group">
+                        <label for="amount">Amount (₹)</label>
+                        <input type="number" step="0.01" id="amount" placeholder="0.00" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="category">Category</label>
+                        <select id="category" required>
+                            <option value="" disabled selected>Choose a category</option>
+                            <option value="Food">🍔 Food & Dining</option>
+                            <option value="Travel">🚗 Travel & Transport</option>
+                            <option value="Health">💊 Health & Wellness</option>
+                            <option value="Shopping">🛍️ Shopping & Lifestyle</option>
+                            <option value="Bills">🧾 Bills & Utilities</option>
+                            <option value="Entertainment">🎬 Entertainment</option>
+                            <option value="Other">✨ Other Expenses</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date">
+                    </div>
+                    <div class="input-group">
+                        <label for="description">Note</label>
+                        <textarea id="description" placeholder="Brief description..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="add-btn">
+                        <i data-lucide="sparkles"></i>
+                        <span>Save Transaction</span>
+                    </button>
+                </form>
+            </section>
+
+            <section class="glass budget-card">
+                <div class="budget-header">
+                    <h3>Monthly Budget</h3>
+                    <button class="action-btn" id="open-budget-modal" title="Adjust Budget">
+                        <i data-lucide="sliders-horizontal"></i>
+                    </button>
+                </div>
+                <div class="budget-stat">
+                    <span id="budget-progress-text">0% used</span>
+                    <span id="budget-remaining-text">₹0.00 left</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="budget-fill" style="width: 0%"></div>
+                </div>
+                <p class="budget-limit">Monthly Limit: <span id="monthly-budget-value">₹0.00</span></p>
+            </section>
+
+            <section class="glass chart-card">
+                <h3>Category Distribution</h3>
+                <div class="chart-wrapper">
+                    <canvas id="category-chart"></canvas>
+                </div>
+            </section>
+
+            <section class="glass chart-card">
+                <h3>Spending Velocity</h3>
+                <div class="chart-wrapper">
+                    <canvas id="trend-chart"></canvas>
+                </div>
+            </section>
+        </aside>
+
+        <main>
+            <section class="filters">
+                <div class="search-box">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="search-input" placeholder="Find transactions by name or category...">
+                </div>
+                <select id="category-filter" class="category-filter">
+                    <option value="All">All Categories</option>
+                    <option value="Food">Food & Dining</option>
+                    <option value="Travel">Travel & Transport</option>
+                    <option value="Health">Health & Wellness</option>
+                    <option value="Shopping">Shopping & Lifestyle</option>
+                    <option value="Bills">Bills & Utilities</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Other">Other Expenses</option>
+                </select>
+            </section>
+
+            <section class="glass history-card">
+                <div class="history-header">
+                    <h3>Recent Transactions</h3>
+                    <button class="btn btn-secondary" id="export-btn" title="Download as CSV">
+                        <i data-lucide="share"></i>
+                        <span>Export Data</span>
+                    </button>
+                </div>
+                <div class="expenses-container" id="expenses-list">
+                    <!-- Expenses will be populated here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="glass modal">
+            <div class="modal-header">
+                <h3>Edit Transaction</h3>
+                <button class="action-btn" id="close-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label for="edit-amount">Amount (₹)</label>
+                    <input type="number" step="0.01" id="edit-amount" required>
+                </div>
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label for="edit-category">Category</label>
+                    <select id="edit-category" required>
+                        <option value="Food">🍔 Food & Dining</option>
+                        <option value="Travel">🚗 Travel & Transport</option>
+                        <option value="Health">💊 Health & Wellness</option>
+                        <option value="Shopping">🛍️ Shopping & Lifestyle</option>
+                        <option value="Bills">🧾 Bills & Utilities</option>
+                        <option value="Entertainment">🎬 Entertainment</option>
+                        <option value="Other">✨ Other Expenses</option>
+                    </select>
+                </div>
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label for="edit-date">Date</label>
+                    <input type="date" id="edit-date">
+                </div>
+                <div class="input-group" style="margin-bottom: 2rem;">
+                    <label for="edit-description">Description</label>
+                    <textarea id="edit-description"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Update Transaction</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Budget Modal -->
+    <div class="modal-overlay" id="budget-modal">
+        <div class="glass modal">
+            <div class="modal-header">
+                <h3>Financial Goals</h3>
+                <button class="action-btn" id="close-budget-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Set your monthly spending limit to stay on top of your goals.</p>
+            <form id="budget-form">
+                <div class="input-group" style="margin-bottom: 2rem;">
+                    <label for="budget-amount">Monthly Limit (₹)</label>
+                    <input type="number" id="budget-amount" required placeholder="5000">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Apply Limit</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="script.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
